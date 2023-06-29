@@ -27,7 +27,7 @@ const App = () => {
     if (isMounted) {
       localStorage.setItem('contacts', JSON.stringify(contacts));
     }
-  }, [contacts, isMounted]);
+  });
   
 
   const appendContacts = contact => {
