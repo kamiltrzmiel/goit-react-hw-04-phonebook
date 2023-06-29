@@ -1,79 +1,76 @@
-import React, { Component } from 'react';
+import { useEffect, useState } from 'react';
 import ContactList from './ContactList/ContactList';
 import ContactForm from './ContactForm/ContactForm';
 import Filter from './Filter/Filter';
 import { nanoid } from 'nanoid';
 
-export class App extends Component {
-  state = {
-    contacts: JSON.parse(localStorage.getItem('contacts')) || [
-      { id: 'id-1', name: 'Jose Arcadio Morales', number: '+34 459-123-563' },
-      { id: 'id-2', name: 'Jan Nowakowski', number: '+48 443-859-125' },
-      { id: 'id-3', name: 'Bruno Bierhals', number: '+49 645-122-792' },
-      { id: 'id-4', name: 'Rolf Ruckzug', number: '+43 227-252-929' },
-    ],
-    filter: ''
+const initState = [
+  { id: 'id-1', name: 'Jose Arcadio Morales', number: '+34 459-123-563' },
+  { id: 'id-2', name: 'Jan Nowakowski', number: '+48 443-859-125' },
+  { id: 'id-3', name: 'Bruno Bierhals', number: '+49 645-122-792' },
+  { id: 'id-4', name: 'Rolf Ruckzug', number: '+43 227-252-929' },
+];
+    
+const App = () => {
+  const [isMounted, setIsMounted] = useState(false);
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState('');
+
+  useEffect(() => {
+    setIsMounted(true);
+    const savedContacts = localStorage.getItem('contacts');
+    const parsedContacts = JSON.parse(savedContacts) || [...initState]
+    setContacts(parsedContacts);
+  },[]);
+
+  useEffect(() => {
+    if (isMounted) {
+      localStorage.setItem('contacts', JSON.stringify(contacts));
+    }
+  }, [contacts]);
+  
+
+  const appendContacts = contact => {
+    setContacts(prevContacts => [...prevContacts, contact]);
   };
 
-  componentDidMount() {
-    const contacts = JSON.parse(localStorage.getItem('contacts'));
-    if (contacts) {
-      this.setState({ contacts });
-    }
-  }
+  // eslint-disable-next-line no-unused-vars
+  const addContact = event => {
+    event.preventDefault();
 
-  componentDidUpdate() {
-    const { contacts } = this.state;
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }
-
-  addContact = (name, number) => {
-    const { contacts } = this.state;
-
-    const newContact = {
+    
+    const contact = {
       id: nanoid(),
-      name,
-      number
+      name: event.target.elements.name.value,
+      number: event.target.elements.number.value,
     };
 
-    if (!name || !number) {
-      alert('Please enter a name and number')
-      return;
-    }
-
-    if (contacts.some(contact => contact.name.toLowerCase() === name.toLowerCase())) {
-      alert(`${name} already exists`);
-      return;
-    }
-
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, newContact]
-    }));
-  };
-
-  deleteContact = id => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== id)
-    }));
-  };
-
-  changeFilter = e => {
-    const { value } = e.currentTarget;
-    this.setState({ filter: value });
-  };
-
-  render() {
-    const { contacts, filter } = this.state;
-    const filteredContacts = contacts.filter(({ name }) => name.toLowerCase().includes(filter.toLowerCase()));
-
-    return (
-      <div>
-        <h1 style={{ textAlign: 'center' }}>Phonebook</h1>
-        <ContactForm onAddContact={this.addContact} />
-        <h2 style={{ textAlign: 'center' }}>Contacts</h2>
-        <Filter value={filter} onChangeFilter={this.changeFilter} />
-        <ContactList contacts={filteredContacts} onDeleteContact={this.deleteContact} />
-      </div>
+  
+    
+    const isAlreadyInContacts = contacts.some(
+        person => person.name.toLowerCase() === contact.name.toLowerCase()
     );
-  }
-}
+
+    if (isAlreadyInContacts) {
+      return alert(`{contact.name} already in contacts`);
+    };
+
+    appendContacts(contact);
+    event.target.reset();
+  };
+  return (
+    <>
+      <h1 style={{ textAlign: 'center' }}>Phonebook</h1>
+      <ContactForm contacts={contacts} setContacts={setContacts} />
+      <h2 style={{ textAlign: 'center'}}>Contacts</h2>
+      <Filter setFilter={setFilter} />
+      <ContactList
+        contacts={contacts}
+        filterValue={filter}
+        setContacts={setContacts}
+      />
+    </>
+  );
+};
+
+export default App;

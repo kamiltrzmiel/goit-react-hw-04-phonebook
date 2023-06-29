@@ -1,14 +1,19 @@
 import css from './filter.module.css'
 
-const Filter = ({ value, onChangeFilter }) => (
+const Filter = ({ setFilter }) => {
+
+  const filterContacts = event => {
+    setFilter(event.target.value)
+  };
+  return (
   <div className={css.filterWrapper}>
     <input className={css.inputFilter} type="text"
       name="filter"
       placeholder="Find contacts"
-      value={value}
-      onChange={onChangeFilter}
+      onChange={filterContacts}
     />
   </div>  
   );
+};
 
 export default Filter;
